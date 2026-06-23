@@ -52,3 +52,5 @@ Thumbs.db
 # Environment
 .env
 .env.local
+SECRET_KEY*.txt 
+.tmp.driveupload 
