@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart LinkTree - Analytics</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <button id="sidebar-toggle" class="sidebar-toggle">☰</button>
+                Smart LinkTree Analytics
+            </div>
+            <div class="navbar-menu">
+                <a href="/dashboard.html" class="navbar-item">Dashboard</a>
+                <a href="#" onclick="logout()" class="navbar-item">Logout</a>
+            </div>
+        </nav>
+
+        <div class="layout-wrapper">
+            <!-- Sidebar Navigation -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <h3>Analytics</h3>
+                    <button class="sidebar-close" onclick="closeSidebar()">&times;</button>
+                </div>
+                <nav class="sidebar-menu">
+                    <a href="#overview" class="sidebar-item active" onclick="scrollToSection('overview')">
+                        <span class="icon">📊</span>
+                        <span>Overview</span>
+                    </a>
+                    <a href="#trends" class="sidebar-item" onclick="scrollToSection('trends')">
+                        <span class="icon">📈</span>
+                        <span>Trends</span>
+                    </a>
+                    <a href="#performance" class="sidebar-item" onclick="scrollToSection('performance')">
+                        <span class="icon">⚡</span>
+                        <span>Performance</span>
+                    </a>
+                    <a href="#breakdown" class="sidebar-item" onclick="scrollToSection('breakdown')">
+                        <span class="icon">📋</span>
+                        <span>Link Details</span>
+                    </a>
+                    <div class="sidebar-divider"></div>
+                    <a href="/dashboard.html" class="sidebar-item">
+                        <span class="icon">🏠</span>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#" onclick="logout()" class="sidebar-item logout">
+                        <span class="icon">🚪</span>
+                        <span>Logout</span>
+                    </a>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <div id="main-content" class="analytics-container">
+
+                    <!-- Header Section -->
+                    <div id="overview" class="analytics-header">
+                        <div class="header-content">
+                            <h1>Analytics Overview</h1>
+                            <div class="header-meta">
+                                <span class="live-indicator">
+                                    <span class="dot"></span>
+                                    Live
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Key Metrics -->
+                    <div class="analytics-summary">
+                        <div class="summary-card primary">
+                            <div class="summary-icon">👆</div>
+                            <div class="summary-label">Total Clicks</div>
+                            <div class="summary-value" id="total-clicks">0</div>
+                            <div class="summary-trend positive" id="clicks-trend">
+                                <span></span>↗</span> <span id="clicks-change">+0</span>
+                            </div>
+                        </div>
+
+                        <div class="summary-card">
+                            <div class="summary-icon">👥</div>
+                            <div class="summary-label">Unique Visitors</div>
+                            <div class="summary-value" id="total-visitors">0</div>
+                            <div class="summary-trend positive" id="visitors-trend">
+                                <span>↗</span> <span id="visitors-change">+0</span>
+                            </div>
+                        </div>
+
+                        <div class="summary-card">
+                            <div class="summary-icon">🏆</div>
+                            <div class="summary-label">Top Link</div>
+                            <div class="summary-value small" id="top-link">None</div>
+                            <div class="summary-meta" id="top-link-clicks">0 clicks</div>
+                        </div>
+
+                        <div class="summary-card">
+                            <div class="summary-icon">📊</div>
+                            <div class="summary-label">Avg. CTR</div>
+                            <div class="summary-value" id="avg-ctr">0%</div>
+                            <div class="summary-meta">Click-through rate</div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section -->
+                    <div class="analytics-content">
+                        <!-- Trends Chart -->
+                        <div id="trends" class="chart-container">
+                            <div class="chart-header-with-controls">
+                                <div class="chart-header">
+                                    <h2>Activity Trends</h2>
+                                    <div class="chart-subtitle">Click patterns over time</div>
+                                </div>
+                                <!-- View Selector -->
+                                <div class="view-selector">
+                                    <button class="view-btn active" onclick="setAnalyticsView('daily')" id="daily-btn">
+                                        <span class="icon">📅</span>
+                                        Daily
+                                    </button>
+                                    <button class="view-btn" onclick="setAnalyticsView('weekly')" id="weekly-btn">
+                                        <span class="icon">📊</span>
+                                        Weekly
+                                    </button>
+                                </div>
+                            </div>
+                            <canvas id="trendsChart"></canvas>
+                        </div>
+
+                        <!-- Performance Chart -->
+                        <div id="performance" class="chart-container">
+                            <div class="chart-header">
+                                <h2>Link Performance</h2>
+                                <div class="chart-subtitle">Clicks per link comparison</div>
+                            </div>
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+
+                        <!-- Enhanced Links Table -->
+                        <div id="breakdown" class="links-breakdown">
+                            <div class="section-header">
+                                <h2>Link Details</h2>
+                                <div class="section-subtitle">Comprehensive breakdown of all link activity</div>
+                            </div>
+
+                            <div class="table-wrapper">
+                                <table class="analytics-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Link Title</th>
+                                            <th>Total Clicks</th>
+                                            <th>Unique Visitors</th>
+                                            <th>Last Activity</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="links-table-body">
+                                        <tr class="loading-row">
+                                            <td colspan="5">
+                                                <div class="loading-state">
+                                                    <div class="loading-spinner"></div>
+                                                    <span>Loading analytics data...</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Reset Analytics -->
+                        <div class="actions-section">
+                            <div class="action-card">
+                                <div class="action-content">
+                                    <div class="action-header">
+                                        <span class="action-icon">🔄</span>
+                                        <div>
+                                            <h3>Reset Analytics Data</h3>
+                                            <p>Clear all analytics data and start fresh. This action cannot be undone.</p>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-outline btn-danger" onclick="confirmReset()">
+                                        Reset Data
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="/static/navigation.js"></script>
+    <script src="/static/analytics.js"></script>
+
+    <style>
+        /* Enhanced Summary Cards */
+        .summary-card {
+            text-align: center;
+            position: relative;
+        }
+
+        .summary-card.primary {
+            border-color: rgba(0, 255, 65, 0.8);
+            box-shadow: 0 4px 20px rgba(0, 255, 65, 0.3);
+        }
+
+        .summary-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            opacity: 0.9;
+        }
+
+        .summary-trend {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .summary-trend.positive {
+            color: #4ade80;
+        }
+
+        .summary-trend.negative {
+            color: #f87171;
+        }
+
+        .summary-meta {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        /* Enhanced Chart Headers */
+        .chart-header {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .chart-header-with-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            gap: 20px;
+        }
+
+        .chart-header-with-controls .chart-header {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .chart-header-with-controls .view-selector {
+            flex-shrink: 0;
+        }
+
+        .chart-header h2 {
+            margin-bottom: 8px;
+        }
+
+        .chart-subtitle {
+            font-size: 0.9rem;
+            color: #888;
+            font-style: italic;
+        }
+
+        /* Enhanced Table Styles */
+        .table-wrapper {
+            margin-top: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .analytics-table {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        .analytics-table tbody tr:nth-child(even) {
+            background: rgba(0, 255, 65, 0.02);
+        }
+
+        .analytics-table tbody tr:hover {
+            background: rgba(0, 255, 65, 0.08) !important;
+        }
+
+        /* Enhanced Link Performance Table */
+        .table-row {
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .link-cell {
+            padding: 20px !important;
+        }
+
+        .link-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .link-title {
+            background: rgba(0, 255, 65, 0.1);
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            font-size: 13px;
+            font-weight: 600;
+            color: #00ff41;
+            display: inline-block;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+        }
+
+        .link-id {
+            font-size: 11px;
+            color: #666;
+            font-family: monospace;
+            margin-top: 2px;
+        }
+
+        .metric-cell {
+            text-align: center !important;
+            padding: 20px !important;
+        }
+
+        .metric-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .metric-number {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #00ff41;
+            text-shadow: 0 0 5px rgba(0, 255, 65, 0.3);
+        }
+
+        .trend-indicator {
+            font-size: 0.9rem;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+
+        .trend-indicator.hot {
+            background: rgba(255, 69, 0, 0.2);
+            color: #ff4500;
+        }
+
+        .trend-indicator.positive {
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+        }
+
+        .trend-indicator.neutral {
+            background: rgba(156, 163, 175, 0.2);
+            color: #9ca3af;
+        }
+
+        .trend-indicator.low {
+            background: rgba(248, 113, 113, 0.2);
+            color: #f87171;
+        }
+
+        .ctr-rate {
+            font-size: 0.75rem;
+            color: #888;
+            font-weight: 500;
+        }
+
+        .time-cell {
+            text-align: center !important;
+            padding: 20px !important;
+        }
+
+        .time-display {
+            font-size: 0.9rem;
+            color: #d0d0d0;
+            font-weight: 500;
+        }
+
+        .time-display.never {
+            color: #666;
+            font-style: italic;
+        }
+
+        .action-cell {
+            text-align: center !important;
+            padding: 20px !important;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            border-radius: 8px;
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            min-width: 40px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-icon:hover {
+            background: rgba(0, 255, 65, 0.2);
+            border-color: #00ff41;
+            box-shadow: 0 4px 12px rgba(0, 255, 65, 0.3);
+        }
+
+        .btn-icon span {
+            display: block;
+        }
+
+        /* Empty State */
+        .empty-state td {
+            padding: 60px 20px !important;
+            text-align: center !important;
+            border: none !important;
+        }
+
+        .empty-message {
+            color: #888;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 16px;
+            opacity: 0.6;
+        }
+
+        .empty-message h3 {
+            color: #a0a0a0;
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+        }
+
+        .empty-message p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-success {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            border: 1px solid #16a34a;
+        }
+
+        .toast-error {
+            background: linear-gradient(135deg, #f87171, #ef4444);
+            border: 1px solid #dc2626;
+        }
+
+        /* Responsive improvements */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .analytics-summary {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+
+            .action-content {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+
+            .analytics-table {
+                font-size: 0.8rem;
+            }
+
+            .analytics-table th,
+            .analytics-table td {
+                padding: 12px 8px;
+            }
+
+            .link-cell, .metric-cell, .time-cell, .action-cell {
+                padding: 12px 8px !important;
+            }
+
+            .summary-card {
+                padding: 20px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .btn-icon {
+                padding: 6px 8px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .analytics-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .link-info {
+                gap: 2px;
+            }
+
+            .link-title {
+                font-size: 11px;
+                padding: 4px 6px;
+            }
+
+            .metric-number {
+                font-size: 1rem;
+            }
+
+            .toast {
+                right: 10px;
+                left: 10px;
+                transform: translateY(-100px);
+            }
+
+            .toast.show {
+                transform: translateY(0);
+            }
+        }
+    </style>
+</body>
+</html>

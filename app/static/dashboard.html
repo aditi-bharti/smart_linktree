@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart LinkTree - Dashboard</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <button id="sidebar-toggle" class="sidebar-toggle">☰</button>
+                Smart LinkTree
+            </div>
+            <div class="navbar-menu">
+                <a href="/analytics.html" class="navbar-item">Analytics</a>
+                <a href="#" onclick="logout()" class="navbar-item">Logout</a>
+            </div>
+        </nav>
+
+        <div class="layout-wrapper">
+            <!-- Main Sidebar Navigation -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <h3>Dashboard</h3>
+                    <button class="sidebar-close" onclick="closeSidebar()">&times;</button>
+                </div>
+                <nav class="sidebar-menu">
+                    <a href="#profile" class="sidebar-item active" onclick="switchTabWithClose('profile')">
+                        <span class="icon">👤</span>
+                        <span>Edit Profile</span>
+                    </a>
+                    <a href="#links" class="sidebar-item" onclick="switchTabWithClose('links')">
+                        <span class="icon">🔗</span>
+                        <span>Manage Links</span>
+                    </a>
+                    <a href="#analytics" class="sidebar-item" onclick="switchTabWithClose('analytics')">
+                        <span class="icon">📊</span>
+                        <span>Analytics</span>
+                    </a>
+                    <a href="#browse" class="sidebar-item" onclick="switchTabWithClose('browse')">
+                        <span class="icon">🌍</span>
+                        <span>Browse Profiles</span>
+                    </a>
+                    <a href="#admin" class="sidebar-item admin-only" onclick="switchTabWithClose('admin')" style="display:none;">
+                        <span class="icon">🛡️</span>
+                        <span>Admin Panel</span>
+                    </a>
+                    <div class="sidebar-divider"></div>
+                    <a href="/analytics.html" class="sidebar-item">
+                        <span class="icon">📈</span>
+                        <span>Detailed Analytics</span>
+                    </a>
+                    <a href="#" onclick="logout()" class="sidebar-item logout">
+                        <span class="icon">🚪</span>
+                        <span>Logout</span>
+                    </a>
+                </nav>
+            </aside>
+
+            <main class="main-content">
+                <div class="dashboard">
+                <div class="dashboard-content">
+                    <!-- Profile Tab -->
+                    <div id="profile-tab" class="tab-content active">
+                    <h2>Edit Your Profile</h2>
+                    <div class="profile-actions">
+                        <button class="btn btn-secondary" onclick="showQRCode()">📱 Generate QR Code</button>
+                        <a id="view-profile-link" href="#" target="_blank" class="btn btn-secondary">👁️ View Profile</a>
+                    </div>
+                    <div id="qr-modal" class="modal" style="display:none;">
+                        <div class="modal-content">
+                            <span class="modal-close" onclick="closeQRModal()">&times;</span>
+                            <h3>Your Profile QR Code</h3>
+                            <div id="qr-code-container"></div>
+                            <p id="qr-profile-url" class="qr-url"></p>
+                            <button class="btn btn-primary" onclick="downloadQRCode()">Download QR Code</button>
+                        </div>
+                    </div>
+                    <form id="profile-form" onsubmit="updateProfile(event)">
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" id="profile-title" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Bio</label>
+                            <textarea id="profile-bio"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Avatar URL</label>
+                            <input type="url" id="profile-avatar">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Profile</button>
+                    </form>
+                    
+                    <!-- Position Application Section -->
+                    <div class="position-section" id="position-section">
+                        <h3>Position Application</h3>
+                        <div id="position-status" class="position-status">
+                            <!-- Status will be loaded here -->
+                        </div>
+                        <div id="position-apply-form" style="display:none;">
+                            <p>Apply for a position to access special features and links.</p>
+                            <div class="form-group">
+                                <label>Select Position</label>
+                                <select id="apply-position">
+                                    <option value="">-- Select Position --</option>
+                                    <option value="student">🎓 Student</option>
+                                    <option value="developer">💻 Developer</option>
+                                    <option value="hr">👔 HR</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" onclick="applyForPosition()">Submit Application</button>
+                        </div>
+                    </div>
+                    </form>
+                </div>
+
+                <!-- Links Tab -->
+                <div id="links-tab" class="tab-content">
+                    <h2>Manage Your Links</h2>
+                    <button class="btn btn-primary" onclick="showAddLinkForm()">+ Add Link</button>
+                    
+                    <div id="add-link-form" class="form-section" style="display:none;">
+                        <h3>Add New Link</h3>
+                        <form id="link-form" onsubmit="addLink(event)">
+                            <div class="form-group">
+                                <label>Title</label>
+                                <input type="text" id="link-title" required>
+                            </div>
+                            <div class="form-group">
+                                <label>URL</label>
+                                <input type="url" id="link-url" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <input type="text" id="link-description">
+                            </div>
+                            <div class="form-group">
+                                <label>Icon (Emoji)</label>
+                                <input type="text" id="link-icon" placeholder="🎨">
+                            </div>
+                            <div class="form-group">
+                                <label>Rule Type</label>
+                                <select id="link-rule-type" onchange="updateRuleValuePlaceholder()">
+                                    <option value="">None</option>
+                                    <option value="time">Time-based</option>
+                                    <option value="location">Location-based</option>
+                                    <option value="device">Device-based</option>
+                                    <option value="day">Day-based</option>
+                                    <option value="user_group">Position</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="rule-value-group" style="display:none;">
+                                <label>Rule Value</label>
+                                <input type="text" id="link-rule-value" placeholder="">
+                                <small id="rule-value-help" class="form-help"></small>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Link</button>
+                            <button type="button" class="btn btn-secondary" onclick="hideAddLinkForm()">Cancel</button>
+                        </form>
+                    </div>
+
+                    <div id="links-list" class="links-list">
+                        <!-- Links will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Browse Tab -->
+                <div id="browse-tab" class="tab-content">
+                    <h2>Browse Public Profiles</h2>
+                    
+                    <!-- Search Section -->
+                    <div class="search-section">
+                        <div class="search-container">
+                            <input type="text" id="profile-search" placeholder="Search by username or title..." class="search-input">
+                            <button onclick="clearSearch()" class="btn btn-secondary clear-btn">
+                                <span class="icon">✖</span>
+                                Clear
+                            </button>
+                            <button onclick="loadBrowseProfiles()" class="btn btn-primary">
+                                <span class="icon">🔄</span>
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="profiles-list" class="profiles-list">
+                        <!-- Profiles will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Admin Panel Tab -->
+                <div id="admin-tab" class="tab-content">
+                    <h2>🛡️ Admin Panel</h2>
+                    
+                    <!-- Admin Stats -->
+                    <div class="admin-stats">
+                        <div class="summary-card">
+                            <div class="summary-icon">👥</div>
+                            <div class="summary-value" id="admin-total-users">0</div>
+                            <div class="summary-label">Total Users</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-icon">🔗</div>
+                            <div class="summary-value" id="admin-total-links">0</div>
+                            <div class="summary-label">Total Links</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-icon">📋</div>
+                            <div class="summary-value" id="admin-pending-apps">0</div>
+                            <div class="summary-label">Pending Applications</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-icon">👆</div>
+                            <div class="summary-value" id="admin-total-clicks">0</div>
+                            <div class="summary-label">Total Clicks</div>
+                        </div>
+                    </div>
+
+                    <!-- User Management -->
+                    <div class="admin-section">
+                        <h3>User Management</h3>
+                        <div class="search-section">
+                            <input type="text" id="admin-user-search" placeholder="Search users..." class="search-input" onkeyup="filterAdminUsers()">
+                        </div>
+                        <div id="admin-users-list" class="admin-users-list">
+                            <!-- Users will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- All Links View -->
+                    <div class="admin-section">
+                        <h3>All Links Across Platform</h3>
+                        <div id="admin-all-links" class="admin-links-list">
+                            <!-- All links will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Profile Management -->
+                    <div class="admin-section">
+                        <h3>All Profiles Management</h3>
+                        <p class="section-description">Manage all profiles including demo profiles without user accounts</p>
+                        <div class="search-section">
+                            <input type="text" id="admin-profile-search" placeholder="Search profiles..." class="search-input" onkeyup="filterAdminProfiles()">
+                        </div>
+                        <div id="admin-profiles-list" class="admin-profiles-list">
+                            <!-- Profiles will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Tab -->
+                <div id="analytics-tab" class="tab-content">
+                    <h2>Link Engagement Analytics</h2>
+                    <div class="analytics-quick">
+                        <div class="summary-card">
+                            <div class="summary-value" id="dash-total-clicks">0</div>
+                            <div class="summary-label">Total Clicks</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-value" id="dash-total-visitors">0</div>
+                            <div class="summary-label">Unique Visitors</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-value" id="dash-top-link">-</div>
+                            <div class="summary-label">Top Link</div>
+                        </div>
+                    </div>
+                    <div id="analytics-links" class="analytics-table-container">
+                        <!-- Links analytics will be loaded here -->
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <a href="/analytics.html" class="btn btn-primary">View Full Analytics</a>
+                    </div>
+                </div>
+            </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="/static/navigation.js"></script>
+    <script src="/static/dashboard.js"></script>
+</body>
+</html>

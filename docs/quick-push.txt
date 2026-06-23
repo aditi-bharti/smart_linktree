@@ -1,0 +1,22 @@
+===============================================
+QUICK PUSH COMMAND
+===============================================
+
+Copy and paste this command (replace YOUR_TOKEN with your GitHub token):
+
+git push https://YOUR_TOKEN@github.com/codecraftersmca-hash/smart-linktree.git main
+
+
+Get your token from:
+https://github.com/settings/tokens
+
+Select scope: repo (full control)
+
+===============================================
+
+After pushing, redeploy on Vercel:
+1. Go to your Vercel dashboard
+2. Click on your project
+3. Click "Redeploy" or it will auto-deploy
+
+===============================================

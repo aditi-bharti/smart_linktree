@@ -1,0 +1,92 @@
+===========================================
+PUSH TO GITHUB - MANUAL COMMANDS
+===========================================
+
+STEP 1: Create Repository on GitHub
+------------------------------------
+1. Go to: https://github.com/codecraftersmca-hash
+2. Click "+" → "New repository"
+3. Name: smart-linktree (or your choice)
+4. Description: Dynamic LinkTree alternative with admin panel
+5. Public or Private
+6. DO NOT initialize with README
+7. Click "Create repository"
+
+
+STEP 2: Run These Commands
+------------------------------------
+Copy and paste these commands one by one:
+
+# Initialize git
+git init
+
+# Add all files
+git add .
+
+# Create first commit
+git commit -m "Initial commit: Smart LinkTree with admin panel and Firebase auth"
+
+# Add remote (replace YOUR-REPO-NAME with actual name)
+git remote add origin https://github.com/codecraftersmca-hash/YOUR-REPO-NAME.git
+
+# Push to GitHub
+git branch -M main
+git push -u origin main
+
+
+ALTERNATIVE: Use the Script
+------------------------------------
+Run the automated script:
+
+./push-to-github.sh
+
+
+WHAT GETS PUSHED
+------------------------------------
+✅ All code files
+✅ Documentation
+✅ Example data files
+✅ Requirements.txt
+
+❌ firebase-credentials.json (sensitive)
+❌ data/users.json (user data)
+❌ data/profiles.json (user data)
+❌ server.log (logs)
+
+
+AFTER PUSHING
+------------------------------------
+1. Go to: https://github.com/codecraftersmca-hash/YOUR-REPO-NAME
+2. Click README.md → Edit
+3. Copy content from README_GITHUB.md
+4. Save
+
+5. Click "About" gear icon
+6. Add topics: linktree, fastapi, python, firebase, admin-panel, analytics
+
+7. Go to "Releases" → "Create new release"
+8. Tag: v1.0.0
+9. Title: Smart LinkTree v1.0.0
+10. Publish release
+
+
+TROUBLESHOOTING
+------------------------------------
+If "remote origin already exists":
+  git remote remove origin
+  git remote add origin https://github.com/codecraftersmca-hash/YOUR-REPO-NAME.git
+
+If "failed to push":
+  git pull origin main --allow-unrelated-histories
+  git push -u origin main
+
+If "Permission denied":
+  Use personal access token instead of password
+  Generate at: https://github.com/settings/tokens
+
+
+YOUR REPOSITORY URL
+------------------------------------
+https://github.com/codecraftersmca-hash/YOUR-REPO-NAME
+
+Replace YOUR-REPO-NAME with the actual repository name you created.

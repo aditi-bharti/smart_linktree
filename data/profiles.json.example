@@ -1,0 +1,22 @@
+{
+  "user_example123": {
+    "id": "user_example123",
+    "title": "Demo User",
+    "bio": "This is a demo profile",
+    "avatar_url": "https://api.dicebear.com/7.x/bottts/svg?seed=demo",
+    "links": [
+      {
+        "id": "link_1",
+        "title": "Example Link",
+        "url": "https://example.com",
+        "description": "This is an example link",
+        "icon": "🔗",
+        "is_active": true,
+        "is_highlighted": false,
+        "rules": [],
+        "click_count": 0
+      }
+    ],
+    "theme": "light"
+  }
+}
