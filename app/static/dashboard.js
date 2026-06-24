@@ -155,7 +155,7 @@ async function updateProfile(event) {
                 }, 2000);
             }
             
-            alert('Profile updated successfully! ✓\n\nYour changes have been saved.');
+            const s = document.getElementById('profile-success'); if(s){s.textContent='Profile saved successfully.';s.style.display='flex';setTimeout(()=>s.style.display='none',3000);}
         } else {
             const errorData = await response.json().catch(() => ({}));
             alert('Error updating profile: ' + (errorData.detail || 'Unknown error'));
@@ -304,34 +304,29 @@ async function deleteLink(linkId) {
 }
 
 function loadLinksList() {
-    let html = '';
-    
-    if (currentProfile.links.length === 0) {
-        html = '<p>No links yet. Create your first link above!</p>';
-    } else {
-        html = '<div class="links-grid">';
-        currentProfile.links.forEach(link => {
-            const rulesJson = JSON.stringify(link.rules || []).replace(/"/g, '&quot;');
-            html += `
-                <div class="link-item" id="link-item-${link.id}">
-                    <div class="link-header">
-                        <span class="link-icon">${link.icon || 'L'}</span>
-                        <span class="link-title">${link.title}</span>
-                        <div class="link-actions">
-                            <button class="btn btn-small btn-secondary" onclick="showEditLinkForm('${link.id}', '${link.title}', '${link.url}', '${link.description || ''}', '${link.icon || ''}', '${rulesJson}')">Edit</button>
-                            <button class="btn btn-small btn-danger" onclick="deleteLink('${link.id}')">Delete</button>
-                        </div>
-                    </div>
-                    <p class="link-url"><a href="${link.url}" target="_blank">${link.url}</a></p>
-                    <p class="link-description">${link.description || ''}</p>
-                    ${link.rules.length > 0 ? `<p class="link-rules">Rules: ${link.rules.map(r => r.rule_type).join(', ')}</p>` : ''}
-                </div>
-            `;
-        });
-        html += '</div>';
+    const container = document.getElementById('links-list');
+    if (!currentProfile.links || currentProfile.links.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔗</div><div class="empty-state-title">No links yet</div><div class="empty-state-desc">Click "Add Link" above to create your first link.</div></div>';
+        return;
     }
-    
-    document.getElementById('links-list').innerHTML = html;
+    let html = '';
+    currentProfile.links.forEach(link => {
+        const rulesJson = JSON.stringify(link.rules || []).replace(/"/g, '&quot;');
+        const ruleLabel = (link.rules && link.rules.length > 0) ? '<span class="rule-badge">' + link.rules[0].rule_type + '</span>' : '';
+        html += '<div class="link-card" id="link-item-' + link.id + '">'
+            + '<div class="link-card-icon">' + (link.icon || '🔗') + '</div>'
+            + '<div class="link-card-body">'
+            + '<div class="link-card-title">' + link.title + '</div>'
+            + '<div class="link-card-url"><a href="' + link.url + '" target="_blank">' + link.url + '</a></div>'
+            + '<div class="link-card-meta">' + (link.description ? '<span style="font-size:0.78rem;color:var(--gray-400)">' + link.description + '</span>' : '') + ruleLabel + '</div>'
+            + '</div>'
+            + '<div class="link-card-actions">'
+            + '<button class="btn btn-sm btn-secondary" onclick="showEditLinkForm('' + link.id + '', '' + link.title.replace(/'/g, "\'") + '', '' + link.url + '', '' + (link.description || '').replace(/'/g, "\'") + '', '' + (link.icon || '') + '', '' + rulesJson + '')">Edit</button>'
+            + '<button class="btn btn-sm btn-danger" onclick="deleteLink('' + link.id + '')">Delete</button>'
+            + '</div>'
+            + '</div>';
+    });
+    container.innerHTML = html;
 }
 
 function showEditLinkForm(linkId, title, url, description, icon, rulesJson) {
@@ -401,11 +396,9 @@ function showEditLinkForm(linkId, title, url, description, icon, rulesJson) {
     
     const linkItem = document.getElementById(`link-item-${linkId}`);
     linkItem.innerHTML += formHtml;
-    linkItem.querySelector('.link-header').style.display = 'none';
-    linkItem.querySelector('.link-url').style.display = 'none';
-    linkItem.querySelector('.link-description').style.display = 'none';
-    const rulesEl = linkItem.querySelector('.link-rules');
-    if (rulesEl) rulesEl.style.display = 'none';
+    linkItem.querySelector('.link-card-body').style.display = 'none';
+    linkItem.querySelector('.link-card-icon').style.display = 'none';
+    linkItem.querySelector('.link-card-actions').style.display = 'none';
 }
 
 function saveEditedLink(linkId) {
@@ -458,11 +451,9 @@ function cancelEditLink(linkId) {
     if (editForm) {
         editForm.remove();
     }
-    linkItem.querySelector('.link-header').style.display = 'flex';
-    linkItem.querySelector('.link-url').style.display = 'block';
-    linkItem.querySelector('.link-description').style.display = 'block';
-    const rulesEl = linkItem.querySelector('.link-rules');
-    if (rulesEl) rulesEl.style.display = 'block';
+    linkItem.querySelector('.link-card-body').style.display = '';
+    linkItem.querySelector('.link-card-icon').style.display = '';
+    linkItem.querySelector('.link-card-actions').style.display = '';
 }
 
 function updateEditRuleValuePlaceholder(linkId) {
@@ -513,30 +504,24 @@ async function loadBrowseProfiles() {
 }
 
 function displayProfiles(profiles) {
-    let html = '<div class="profiles-grid">';
-    
-    profiles.forEach(profile => {
-        if (profile.id !== currentUser.id) { // Don't show own profile
-            const linkText = profile.links.length === 1 ? 'link' : 'links';
-            const avatarSeed = encodeURIComponent(profile.id || profile.title || 'user');
-            const fallbackAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`;
-            html += `
-                <div class="profile-card" onclick="viewProfile('${profile.id}')">
-                    <img src="${profile.avatar_url || fallbackAvatar}" alt="${profile.title}">
-                    <div class="profile-card-content">
-                        <h3>${profile.title}</h3>
-                        <p>${profile.bio || 'No bio available'}</p>
-                        <div class="link-count">🔗 ${profile.links.length} ${linkText}</div>
-                    </div>
-                </div>
-            `;
-        }
+    const filtered = profiles.filter(p => p.id !== currentUser.id);
+    if (filtered.length === 0) {
+        document.getElementById('profiles-list').innerHTML = '<div class="empty-state"><div class="empty-state-icon">🌍</div><div class="empty-state-title">No profiles found</div><div class="empty-state-desc">Be the first to create a public profile!</div></div>';
+        return;
+    }
+    let html = '';
+    filtered.forEach(profile => {
+        const initials = (profile.title || 'U').slice(0, 2).toUpperCase();
+        const linkCount = (profile.links || []).length;
+        html += '<a class="profile-card-thumb" href="/' + profile.id + '" target="_blank">'
+            + '<div class="profile-thumb-avatar">' + initials + '</div>'
+            + '<div class="profile-thumb-name">' + (profile.title || 'Unnamed') + '</div>'
+            + '<div class="profile-thumb-bio">' + (profile.bio || 'No bio') + '</div>'
+            + '<div style="font-size:0.75rem;color:var(--gray-400);margin-top:6px;">' + linkCount + ' link' + (linkCount !== 1 ? 's' : '') + '</div>'
+            + '</a>';
     });
-    
-    html += '</div>';
     document.getElementById('profiles-list').innerHTML = html;
 }
-
 function searchProfiles() {
     performSearch();
 }
@@ -709,24 +694,15 @@ function displayAnalyticsQuick(analytics) {
         }
     }
     
+    // Update stat cards directly
+    const tc = document.getElementById('dash-total-clicks');
+    const tv = document.getElementById('dash-total-visitors');
+    const tl = document.getElementById('dash-top-link');
+    if (tc) tc.textContent = analytics.total_clicks || 0;
+    if (tv) tv.textContent = analytics.total_unique_visitors || 0;
+    if (tl) tl.textContent = topLinkDisplay;
+
     let html = `
-        <div class="analytics-summary">
-            <div class="summary-card primary">
-                <div class="summary-icon">👆</div>
-                <div class="summary-label">Total Clicks</div>
-                <div class="summary-value">${analytics.total_clicks || 0}</div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-icon">👥</div>
-                <div class="summary-label">Unique Visitors</div>
-                <div class="summary-value">${analytics.total_unique_visitors || 0}</div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-icon">🏆</div>
-                <div class="summary-label">Top Link</div>
-                <div class="summary-value small">${topLinkDisplay}</div>
-            </div>
-        </div>
         
         <div class="analytics-links-table">
             <div class="section-header">
@@ -875,73 +851,48 @@ async function loadAdminPanel() {
 }
 
 function displayAdminUsers(users) {
-    let html = '<div class="admin-users-table">';
-    
+    if (!users || users.length === 0) {
+        document.getElementById('admin-users-list').innerHTML = '<div class="empty-state"><div class="empty-state-title">No users found</div></div>';
+        return;
+    }
+    let html = '';
     users.forEach(user => {
-        const hasApplication = user.position_application ? true : false;
-        const isVerified = user.position_verified ? '✓' : '';
-        const applicationBadge = hasApplication ? 
-            `<span class="badge badge-warning">📋 Applied for: ${user.position_application}</span>` : '';
-        
-        html += `
-            <div class="admin-user-card" data-username="${user.username.toLowerCase()}" data-email="${user.email.toLowerCase()}">
-                <div class="user-info">
-                    <img src="${user.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + user.username}" 
-                         alt="${user.username}" class="user-avatar-small">
-                    <div class="user-details">
-                        <div class="user-name">${user.username} ${isVerified}</div>
-                        <div class="user-email">${user.email}</div>
-                        <div class="user-meta">
-                            <span class="badge badge-${user.role}">${user.role}</span>
-                            <span class="badge badge-position">${user.position}</span>
-                            ${applicationBadge}
-                        </div>
-                    </div>
-                </div>
-                <div class="user-actions">
-                    ${hasApplication ? `
-                        <button class="btn btn-small btn-success" onclick="approvePosition('${user.id}')">✓ Approve</button>
-                        <button class="btn btn-small btn-danger" onclick="rejectPosition('${user.id}')">✗ Reject</button>
-                    ` : ''}
-                    <button class="btn btn-small btn-secondary" onclick="showEditUserModal('${user.id}', '${user.username}', '${user.role}', '${user.position}', ${user.position_verified})">Edit</button>
-                    ${user.id !== currentUser.id ? `
-                        <button class="btn btn-small btn-danger" onclick="deleteUser('${user.id}', '${user.username}')">Delete</button>
-                    ` : ''}
-                </div>
-            </div>
-        `;
+        const hasApplication = !!user.position_application;
+        html += '<div class="user-admin-row" data-username="' + user.username.toLowerCase() + '" data-email="' + user.email.toLowerCase() + '">'
+            + '<div class="user-admin-info">'
+            + '<div class="user-admin-name">' + user.username + (user.position_verified ? ' <span class="badge badge-green">Verified</span>' : '') + '</div>'
+            + '<div class="user-admin-email">' + user.email + '</div>'
+            + '<div style="display:flex;gap:4px;margin-top:4px;">'
+            + '<span class="badge badge-gray">' + user.role + '</span>'
+            + '<span class="badge badge-blue">' + user.position + '</span>'
+            + (hasApplication ? '<span class="badge badge-yellow">Applied: ' + user.position_application + '</span>' : '')
+            + '</div>'
+            + '</div>'
+            + '<div class="user-admin-actions">'
+            + (hasApplication ? '<button class="btn btn-sm btn-success" onclick="approvePosition('' + user.id + '')">Approve</button><button class="btn btn-sm btn-danger" onclick="rejectPosition('' + user.id + '')">Reject</button>' : '')
+            + '<button class="btn btn-sm btn-secondary" onclick="showEditUserModal('' + user.id + '', '' + user.username + '', '' + user.role + '', '' + user.position + '', ' + user.position_verified + ')">Edit</button>'
+            + (user.id !== currentUser.id ? '<button class="btn btn-sm btn-danger" onclick="deleteUser('' + user.id + '', '' + user.username + '')">Delete</button>' : '')
+            + '</div>'
+            + '</div>';
     });
-    
-    html += '</div>';
     document.getElementById('admin-users-list').innerHTML = html;
 }
-
 function displayAdminLinks(links) {
-    let html = '<div class="admin-links-table">';
-    
-    if (links.length === 0) {
-        html += '<p>No links found across the platform.</p>';
-    } else {
-        links.forEach(link => {
-            html += `
-                <div class="admin-link-card">
-                    <div class="link-header">
-                        <div>
-                            <strong>${link.link_title}</strong>
-                            <span class="link-profile">by ${link.profile_title}</span>
-                        </div>
-                        <span class="link-clicks">${link.click_count} clicks</span>
-                    </div>
-                    <div class="link-url-small">${link.link_url}</div>
-                    ${link.link_description ? `<div class="link-desc-small">${link.link_description}</div>` : ''}
-                    ${link.rules.length > 0 ? `<div class="link-rules-small">Rules: ${link.rules.map(r => r.rule_type).join(', ')}</div>` : ''}
-                </div>
-            `;
-        });
+    if (!links || links.length === 0) {
+        document.getElementById('admin-all-links').innerHTML = '<div class="empty-state"><div class="empty-state-title">No links found</div></div>';
+        return;
     }
-    
-    html += '</div>';
+    let html = '<table style="width:100%;border-collapse:collapse;font-size:0.875rem;"><thead><tr style="border-bottom:1px solid var(--gray-200);"><th style="padding:10px 14px;text-align:left;font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400);">Title</th><th style="padding:10px 14px;text-align:left;font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400);">Owner</th><th style="padding:10px 14px;text-align:left;font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400);">Clicks</th></tr></thead><tbody>';
+    links.forEach(link => {
+        html += '<tr style="border-bottom:1px solid var(--gray-100);">'
+            + '<td style="padding:10px 14px;color:var(--gray-700);font-weight:500;">' + link.link_title + '</td>'
+            + '<td style="padding:10px 14px;color:var(--gray-400);font-size:0.8rem;">' + link.profile_title + '</td>'
+            + '<td style="padding:10px 14px;color:var(--gray-700);">' + (link.click_count || 0) + '</td>'
+            + '</tr>';
+    });
+    html += '</tbody></table>';
     document.getElementById('admin-all-links').innerHTML = html;
+}html;
 }
 
 function filterAdminUsers() {
